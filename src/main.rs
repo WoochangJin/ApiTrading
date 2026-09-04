@@ -14,6 +14,14 @@ mod services;
 mod strategy;
 mod ws;
 
-fn main() {
-    println!("Hello, world!");
+use broker::client::BrokerClient;
+use broker::auth::AccessToken;
+
+#[tokio::main]
+async fn main() {
+    dotenvy::dotenv().ok();
+    let config = config::Config::from_env();
+    let client = BrokerClient::new("https://api.example.com".to_string());
+    let token = AccessToken::issue(&client, &config.appkey, &config.secretkey).await.unwrap();
+    println!("Access Token: {}", token.token);
 }
