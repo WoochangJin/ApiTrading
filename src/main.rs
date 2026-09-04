@@ -21,7 +21,7 @@ use broker::auth::AccessToken;
 async fn main() {
     dotenvy::dotenv().ok();
     let config = config::Config::from_env();
-    let client = BrokerClient::new("https://api.example.com".to_string());
+    let client = BrokerClient::new("https://api.kiwoom.com".to_string());
     let token = AccessToken::issue(&client, &config.appkey, &config.secretkey).await.unwrap();
     println!("Access Token: {}", token.token);
 }
