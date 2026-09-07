@@ -4,12 +4,23 @@ Rest Client Base
 
 use axum::extract::path;
 use reqwest::{Client, Method, header::HeaderMap};
-use serde::{Serialize, de::DeserializeOwned};
+use serde::{Serialize, de::DeserializeOwned, Deserialize};
 use crate::error::ClientError;
 
 pub struct BrokerClient {
     http: Client,
     base_url: String,
+}
+
+#[derive(Deserialize)]
+struct ApiErrorEnvelope {
+    error: ApiErrorBody,
+}
+
+#[derive(Deserialize)]
+struct ApiErrorBody {
+    code: String,
+    message: String,
 }
 
 impl BrokerClient {
@@ -47,8 +58,15 @@ impl BrokerClient {
             .headers(header)
             .json(body)
             .send()
-            .await?
-            .error_for_status()?;
+            .await?;
+
+        if !res.status().is_success() {
+            let err_body: ApiErrorEnvelope = res.json().await
+                .unwrap_or_else(|_| ApiErrorEnvelope {
+                    error: ApiErrorBody { code: "unknown".into(), message: "failed to parse error body".into() }
+            });
+            return Err(ClientError::Api { code: err_body.error.code, message: err_body.error.message });
+        }
         Ok(res.json::<T>().await?)
     }
 
@@ -80,8 +98,16 @@ impl BrokerClient {
             .headers(header)
             .form(body)
             .send()
-            .await?
-            .error_for_status()?;
-        Ok(res.json::<T>().await?)
+            .await?;
+
+        if !res.status().is_success() {
+            let err_body: ApiErrorEnvelope = res.json().await
+                .unwrap_or_else(|_| ApiErrorEnvelope {
+                    error: ApiErrorBody { code: "unknown".into(), message: "failed to parse error body".into() }
+                });
+                return Err(ClientError::Api { code: err_body.error.code, message: err_body.error.message });
+        }
+
+    Ok(res.json::<T>().await?)
     }
 } 
