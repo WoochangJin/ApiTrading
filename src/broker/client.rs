@@ -2,6 +2,7 @@
 Rest Client Base
 */
 
+use axum::extract::path;
 use reqwest::{Client, Method, header::HeaderMap};
 use serde::{Serialize, de::DeserializeOwned};
 use crate::error::ClientError;
@@ -51,21 +52,36 @@ impl BrokerClient {
         Ok(res.json::<T>().await?)
     }
 
-    // client.rs
-pub async fn post_empty<B: Serialize>(
-    &self,
-    path: &str,
-    header: HeaderMap,
-    body: &B,
-) -> Result<(), ClientError> {
-    self.http
-        .post(format!("{}{}", self.base_url, path))
-        .headers(header)
-        .json(body)
-        .send()
-        .await?
-        .error_for_status()?;   // 상태코드만 확인, .json() 호출 안 함
+    pub async fn post_empty<B: Serialize>(
+        &self,
+        path: &str,
+        header: HeaderMap,
+        body: &B,
+    ) -> Result<(), ClientError> {
+        self.http
+            .post(format!("{}{}", self.base_url, path))
+            .headers(header)
+            .json(body)
+            .send()
+            .await?
+            .error_for_status()?;   // 상태코드만 확인, .json() 호출 안 함
 
-    Ok(())
-}
+        Ok(())
+    }
+
+    pub async fn post_urlencoded<B: Serialize, T: DeserializeOwned>(
+        &self,
+        path: &str,
+        header: HeaderMap,
+        body: &B,
+    ) -> Result<T, ClientError> {
+        let res = self.http
+            .post(format!("{}{}", self.base_url, path))
+            .headers(header)
+            .form(body)
+            .send()
+            .await?
+            .error_for_status()?;
+        Ok(res.json::<T>().await?)
+    }
 } 

@@ -22,12 +22,7 @@ use broker::auth::AccessToken;
 async fn main() {
     dotenvy::dotenv().ok();
     let config = config::Config::from_env();
-    let price_client = BrokerClient::new("http://100.122.108.62:5000".to_string());
-    let price_response = price::caller::PriceRequest::get_price(
-        &price_client,
-        "SOXL",
-        1000,
-        "2024-01-01",
-    ).await;
-    println!("Price Response: {:?}", price_response);
+    let broker_client = BrokerClient::new("https://openapi.tossinvest.com".to_string());
+    let res = AccessToken::issue(&broker_client, &config.client_id, &config.client_secret).await;
+    println!("Access Token Response: {:?}", res);
 }
