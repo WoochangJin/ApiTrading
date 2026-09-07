@@ -29,7 +29,7 @@ async fn main() {
         &broker_client,
         "10",
         "BUY",
-        "100.0",
+        "10",
     ).await;
 
     println!("Order response: {:?}", order);
