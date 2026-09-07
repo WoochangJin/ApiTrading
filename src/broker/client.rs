@@ -21,6 +21,7 @@ struct ApiErrorEnvelope {
 struct ApiErrorBody {
     code: String,
     message: String,
+    data: Option<serde_json::Value>,
 }
 
 impl BrokerClient {
@@ -63,9 +64,17 @@ impl BrokerClient {
         if !res.status().is_success() {
             let err_body: ApiErrorEnvelope = res.json().await
                 .unwrap_or_else(|_| ApiErrorEnvelope {
-                    error: ApiErrorBody { code: "unknown".into(), message: "failed to parse error body".into() }
+                    error: ApiErrorBody { 
+                        code: "unknown".into(), 
+                        message: "failed to parse error body".into(),
+                        data: None
+                    }
             });
-            return Err(ClientError::Api { code: err_body.error.code, message: err_body.error.message });
+            return Err(ClientError::Api { 
+                code: err_body.error.code, 
+                message: err_body.error.message,
+                data: err_body.error.data,
+            });
         }
         Ok(res.json::<T>().await?)
     }
@@ -103,9 +112,13 @@ impl BrokerClient {
         if !res.status().is_success() {
             let err_body: ApiErrorEnvelope = res.json().await
                 .unwrap_or_else(|_| ApiErrorEnvelope {
-                    error: ApiErrorBody { code: "unknown".into(), message: "failed to parse error body".into() }
+                    error: ApiErrorBody { code: "unknown".into(), message: "failed to parse error body".into(), data: None }
                 });
-                return Err(ClientError::Api { code: err_body.error.code, message: err_body.error.message });
+                return Err(ClientError::Api { 
+                    code: err_body.error.code, 
+                    message: err_body.error.message, 
+                    data: err_body.error.data,
+                });
         }
 
     Ok(res.json::<T>().await?)

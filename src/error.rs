@@ -9,5 +9,5 @@ pub enum ClientError {
     Parse(#[from] serde_json::Error),
 
     #[error("broker api error [{code}]: {message}")]
-    Api { code: String, message: String },
+    Api { code: String, message: String, data: Option<serde_json::Value> },
 }

@@ -17,6 +17,11 @@ struct OrderRequestBody<'a> {
     time_in_force: &'a str,
 }
 
+#[derive(Deserialize)]
+struct OrderResultEnvelope {
+    result: OrderResponse,
+}
+
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct OrderResponse {
@@ -46,8 +51,10 @@ impl OrderRequest {
         let mut header = HeaderMap::new();
         header.insert("authorization", format!("Bearer {token}").parse().unwrap());
         header.insert("X-Tossinvest-Account", x_tossinvest_account.into());
-        let res = client.post(path, header, &body).await?;
+        let envlope:OrderResultEnvelope = client.post(path, header, &body).await?;
 
-        Ok(res)
+        
+
+        Ok(envlope.result)
     }
 }
