@@ -15,6 +15,8 @@ struct OrderRequestBody<'a> {
     confirm_high_value_order: bool,
     price: &'a str,
     time_in_force: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    client_order_id: Option<&'a str>,
 }
 
 #[derive(Deserialize)]
@@ -37,6 +39,7 @@ impl OrderRequest {
         quantity: &str,
         side: &str,
         price: &str,
+        client_order_id: Option<&str>,
     ) -> Result<OrderResponse, ClientError> {
         let path = "/api/v1/orders";
         let body = OrderRequestBody {
@@ -47,6 +50,7 @@ impl OrderRequest {
             confirm_high_value_order: false,
             price,
             time_in_force: "CLS",
+            client_order_id,
         };
         let mut header = HeaderMap::new();
         header.insert("authorization", format!("Bearer {token}").parse().unwrap());
