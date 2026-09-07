@@ -1,6 +1,6 @@
 mod account;
-mod auth;
-mod client;
+pub mod auth;
+pub mod client;
 mod order;
 mod quote;
 mod websocket;

@@ -50,4 +50,22 @@ impl BrokerClient {
             .error_for_status()?;
         Ok(res.json::<T>().await?)
     }
+
+    // client.rs
+pub async fn post_empty<B: Serialize>(
+    &self,
+    path: &str,
+    header: HeaderMap,
+    body: &B,
+) -> Result<(), ClientError> {
+    self.http
+        .post(format!("{}{}", self.base_url, path))
+        .headers(header)
+        .json(body)
+        .send()
+        .await?
+        .error_for_status()?;   // 상태코드만 확인, .json() 호출 안 함
+
+    Ok(())
+}
 } 
