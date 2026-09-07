@@ -17,4 +17,4 @@ thiserror = "2.0.20"
 uuid = { version = "1", features = ["v4", "serde"] }
 dotenvy = "0.15"
 # Cargo.toml
-reqwest = { version = "0.13.4", features = ["json", "query", "form"] }
+reqwest = { version = "0.13.4", features = ["json", "query", "form", "gzip"] }
