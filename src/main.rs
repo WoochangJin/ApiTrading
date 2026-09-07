@@ -13,6 +13,7 @@ mod scheduler;
 mod services;
 mod strategy;
 mod ws;
+mod price;
 
 use broker::client::BrokerClient;
 use broker::auth::AccessToken;
@@ -21,7 +22,12 @@ use broker::auth::AccessToken;
 async fn main() {
     dotenvy::dotenv().ok();
     let config = config::Config::from_env();
-    let client = BrokerClient::new("https://api.kiwoom.com".to_string());
-    let token = AccessToken::issue(&client, &config.appkey, &config.secretkey).await.unwrap();
-    println!("Access Token: {}", token.token);
+    let price_client = BrokerClient::new("http://100.122.108.62:5000".to_string());
+    let price_response = price::caller::PriceRequest::get_price(
+        &price_client,
+        "SOXL",
+        1000,
+        "2024-01-01",
+    ).await;
+    println!("Price Response: {:?}", price_response);
 }
