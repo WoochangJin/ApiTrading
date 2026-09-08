@@ -24,16 +24,16 @@ async fn main() {
     dotenvy::dotenv().ok();
     let config = config::Config::from_env();
     let broker_client = BrokerClient::new("https://openapi.tossinvest.com".to_string());
-    let token = AccessToken::issue(
+    let token_res= AccessToken::issue(
         &broker_client,
         &config.client_id,
         &config.client_secret,
     );
+
+    let token = token_res.await.unwrap().access_token;
     let account = Accounts::get_accounts(
         &broker_client,
-        &token.await
-            .unwrap()
-            .access_token,
+        &token,
     );
 
     println!("Account: {:?}", account.await.unwrap());
