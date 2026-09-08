@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use super::client::BrokerClient;
-use crate::{broker::client, error::ClientError};
+use crate::error::ClientError;
 
 pub struct Accounts;
 

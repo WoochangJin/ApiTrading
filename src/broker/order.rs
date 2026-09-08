@@ -55,10 +55,10 @@ impl OrderRequest {
         let mut header = HeaderMap::new();
         header.insert("authorization", format!("Bearer {token}").parse().unwrap());
         header.insert("X-Tossinvest-Account", x_tossinvest_account.into());
-        let envlope:OrderResultEnvelope = client.post(path, header, &body).await?;
+        let envelope:OrderResultEnvelope = client.post(path, header, &body).await?;
 
         
 
-        Ok(envlope.result)
+        Ok(envelope.result)
     }
 }

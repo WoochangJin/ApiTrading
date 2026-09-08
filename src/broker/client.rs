@@ -18,10 +18,12 @@ struct ApiErrorEnvelope {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct ApiErrorBody {
     code: String,
     message: String,
     data: Option<serde_json::Value>,
+    request_id: Option<String>,
 }
 
 impl BrokerClient {
@@ -43,8 +45,24 @@ impl BrokerClient {
             .headers(header)
             .query(query)
             .send()
-            .await?
-            .error_for_status()?;
+            .await?;
+        if !res.status().is_success() {
+            let err_body: ApiErrorEnvelope = res.json().await
+                .unwrap_or_else(|_| ApiErrorEnvelope {
+                    error: ApiErrorBody { 
+                        code: "unknown".into(), 
+                        message: "failed to parse error body".into(),
+                        data: None,
+                        request_id: None,
+                    }
+            });
+            return Err(ClientError::Api { 
+                code: err_body.error.code, 
+                message: err_body.error.message,
+                data: err_body.error.data,
+                request_id: err_body.error.request_id,
+            });
+        }
         Ok(res.json::<T>().await?)
     }
 
@@ -67,13 +85,15 @@ impl BrokerClient {
                     error: ApiErrorBody { 
                         code: "unknown".into(), 
                         message: "failed to parse error body".into(),
-                        data: None
+                        data: None,
+                        request_id: None,
                     }
             });
             return Err(ClientError::Api { 
                 code: err_body.error.code, 
                 message: err_body.error.message,
                 data: err_body.error.data,
+                request_id: err_body.error.request_id,
             });
         }
         Ok(res.json::<T>().await?)
@@ -112,12 +132,18 @@ impl BrokerClient {
         if !res.status().is_success() {
             let err_body: ApiErrorEnvelope = res.json().await
                 .unwrap_or_else(|_| ApiErrorEnvelope {
-                    error: ApiErrorBody { code: "unknown".into(), message: "failed to parse error body".into(), data: None }
+                    error: ApiErrorBody { 
+                        code: "unknown".into(), 
+                        message: "failed to parse error body".into(), 
+                        data: None, 
+                        request_id: None 
+                    }
                 });
                 return Err(ClientError::Api { 
                     code: err_body.error.code, 
                     message: err_body.error.message, 
                     data: err_body.error.data,
+                    request_id: err_body.error.request_id,
                 });
         }
 
