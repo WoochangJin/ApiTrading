@@ -131,7 +131,7 @@ struct OrderHistoryQuery<'a> {
 impl OrderRequest {
     pub async fn loc_order(
         x_tossinvest_account: i64,
-        token: &str,
+        token: String,
         client: &BrokerClient,
         quantity: &str,
         side: &str,
@@ -161,7 +161,7 @@ impl OrderRequest {
 
     pub async fn get_order_history(
         client: &BrokerClient,
-        token: &str,
+        token: String,
         x_tossinvest_account: i64,
         status: &str,
         symbol: Option<&str>,

@@ -20,7 +20,7 @@ pub struct AccountsResponseBody {
 impl Accounts {
     pub async fn get_accounts(
         client: &BrokerClient,
-        token: &str,
+        token: String,
     ) -> Result<Vec<AccountsResponseBody>, ClientError> {
         let path = "/api/v1/accounts";
         let mut header = reqwest::header::HeaderMap::new();

@@ -1,4 +1,5 @@
 use sqlx::SqlitePool;
+use sqlx::sqlite::SqlitePoolOptions;
 use tokio::sync::Mutex;
 use std::future::Future;
 use crate::broker::client::BrokerClient;
@@ -10,21 +11,33 @@ pub struct AppState {
     pub db: SqlitePool,
     pub broker_client: BrokerClient,
     pub price_client: BrokerClient,
-    pub token: Mutex<Option<String>>,   // 캐시된 토큰
+    pub token: Mutex<Option<String>>,
     pub client_id: String,
     pub client_secret: String,
+    pub account_seq: i64,
+    pub initial_principal: f64,
+    pub initial_start_date: String,
 }
 
 impl AppState {
-    pub async fn new(config: &Config, db: SqlitePool) -> Self {
-        Self {
+    pub async fn new(config: &Config) -> Result<Self, sqlx::Error> {
+        let db = SqlitePoolOptions::new()
+            .connect(&config.database_url)
+            .await?;
+
+        sqlx::migrate!("./migrations").run(&db).await?;
+
+        Ok(Self {
             db,
             broker_client: BrokerClient::new(config.toss_api_url.clone()),
             price_client: BrokerClient::new(config.price_server_url.clone()),
             token: Mutex::new(None),
             client_id: config.client_id.clone(),
             client_secret: config.client_secret.clone(),
-        }
+            account_seq: config.account_seq,
+            initial_principal: config.initial_principal,
+            initial_start_date: config.initial_start_date.clone(),
+        })
     }
 
     async fn get_or_issue_token(&self) -> Result<String, ClientError> {

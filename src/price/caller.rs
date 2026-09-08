@@ -8,7 +8,7 @@ pub struct PriceRequest;
 #[derive(Serialize)]
 struct PriceRequestBody<'a> {
     pub ticker: &'a str,
-    pub principal: i32,
+    pub principal: f64,
     pub start_date: &'a str,
 }
 
@@ -24,7 +24,7 @@ impl PriceRequest {
     pub async fn get_price(
         client: &BrokerClient,
         ticker: &str,
-        principal: i32,
+        principal: f64,
         start_date: &str,
     ) -> Result<PriceResponse, ClientError> {
         let path = "/order";

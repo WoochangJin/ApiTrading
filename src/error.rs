@@ -10,4 +10,7 @@ pub enum ClientError {
 
     #[error("broker api error [{code}]: {message}")]
     Api { code: String, message: String, data: Option<serde_json::Value>, request_id: Option<String> },
+
+    #[error("database error: {0}")]
+    Db(#[from] sqlx::Error),
 }
