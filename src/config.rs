@@ -8,6 +8,7 @@ pub struct Config {
     pub account_seq: i64,
     pub initial_principal: f64,
     pub initial_start_date: String,
+    pub discord_webhook_url: String,
 }
 
 impl Config {
@@ -27,6 +28,7 @@ impl Config {
                 .expect("INITIAL_PRINCIPAL must be a valid number"),
             initial_start_date: std::env::var("INITIAL_START_DATE")
                 .expect("INITIAL_START_DATE not set"),
+            discord_webhook_url: std::env::var("DISCORD_WEBHOOK_URL").expect("DISCORD_WEBHOOK_URL not set"),
         }
     }
 }

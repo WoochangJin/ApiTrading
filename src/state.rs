@@ -17,6 +17,7 @@ pub struct AppState {
     pub account_seq: i64,
     pub initial_principal: f64,
     pub initial_start_date: String,
+    pub discord_client: BrokerClient,
 }
 
 impl AppState {
@@ -37,6 +38,7 @@ impl AppState {
             account_seq: config.account_seq,
             initial_principal: config.initial_principal,
             initial_start_date: config.initial_start_date.clone(),
+            discord_client: BrokerClient::new(config.discord_webhook_url.clone()),
         })
     }
 

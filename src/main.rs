@@ -17,16 +17,19 @@ mod price;
 
 use state::AppState;
 use broker::account::Accounts;
+use broker::order::OrderRequest;
 
 #[tokio::main]
 async fn main() {
     let config = config::Config::from_env();
     let state = AppState::new(&config).await.expect("failed to initialize app state");
 
-    let accounts = state
-        .with_token(|token| Accounts::get_accounts(&state.broker_client, token))
-        .await
-        .expect("failed to fetch accounts");
+    let res = state.with_token(|token| {
+        OrderRequest::loc_order(
+            state.account_seq, token, &state.broker_client,
+            "100", "BUY", "1000", None,   // 100주 * $1000 = $100,000 상당, 무조건 잔액부족 뜰 금액
+        )
+    }).await;
 
-    println!("Accounts: {:?}", accounts);
+    println!("Order result: {:?}", res);
 }
