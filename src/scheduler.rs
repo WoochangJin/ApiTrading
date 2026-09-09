@@ -1,11 +1,12 @@
 use chrono::{Local, TimeZone, Duration as ChronoDuration};
 use tokio::time::{sleep, Duration};
+use std::sync::Arc;
 use crate::{notification, state::AppState};
 
 const TARGET_HOUR: u32 = 18;
 const TARGET_MINUTE: u32 = 0;
 
-pub async fn run(state: AppState) {
+pub async fn run(state: Arc<AppState>) {
     loop {
         let wait = duration_until_next_target();
         tracing::info!("next run in {:?}", wait);

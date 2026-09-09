@@ -2,12 +2,14 @@ use chrono::Local;
 use crate::state::AppState;
 use crate::repositories;
 use crate::models::PriceRecord;
+use crate::broker::account::BuyingPower;
 use crate::broker::order::{OrderRequest, OrderStatus, Side};
 use crate::price::caller::PriceRequest;
 use crate::error::ClientError;
 use crate::notification;
 
 const TICKER: &str = "SOXL";
+const CURRENCY: &str = "USD";
 
 pub async fn run_daily_cycle(state: &AppState) -> Result<(), ClientError> {
     let today = Local::now().date_naive().to_string();
@@ -44,7 +46,34 @@ pub async fn run_daily_cycle(state: &AppState) -> Result<(), ClientError> {
     // 2. 오늘 사이클 정보 결정
     let (cycle_id, principal, start_date) = match &prev {
         None => (1, state.initial_principal, state.initial_start_date.clone()),
-        Some(p) if sell_filled_yesterday => (p.cycle_id + 1, p.cycle_principal, today.clone()),
+        Some(p) if sell_filled_yesterday => {
+            // 사이클이 끝났으므로 실제 매수 가능 금액을 다음 사이클 원금으로 삼는다
+            let buying_power = state.with_token(|token| {
+                BuyingPower::get_buying_power(
+                    &state.broker_client, token, state.account_seq, CURRENCY,
+                )
+            }).await?;
+
+            let next_principal = match buying_power.cash_buying_power.parse::<f64>() {
+                Ok(v) if v > 0.0 => {
+                    tracing::info!(
+                        "cycle {} closed: principal {} -> {v}",
+                        p.cycle_id, p.cycle_principal,
+                    );
+                    v
+                }
+                other => {
+                    // 파싱 실패하거나 0 이면 원금을 잃지 않도록 기존 값을 유지한다
+                    tracing::warn!(
+                        "cycle {} closed but buying power was unusable ({:?} -> {other:?}); keeping principal {}",
+                        p.cycle_id, buying_power.cash_buying_power, p.cycle_principal,
+                    );
+                    p.cycle_principal
+                }
+            };
+
+            (p.cycle_id + 1, next_principal, today.clone())
+        }
         Some(p) => (p.cycle_id, p.cycle_principal, p.cycle_start_date.clone()),
     };
 
